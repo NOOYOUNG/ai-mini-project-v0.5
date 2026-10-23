@@ -62,7 +62,9 @@ npm run dev
 
 > `npm install` 후 vulnerabilities 경고가 보여도 `npm audit fix`는 실행하지 마세요.
 
-### 프로젝트 구조
+## 프로젝트
+
+### Directory
 
 ```
 ai-mini-project-v0.5/
