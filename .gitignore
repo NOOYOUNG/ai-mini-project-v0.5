@@ -1,0 +1,19 @@
+# Secrets
+.env
+
+# OS
+.DS_Store
+
+# Instructor only / local tool outputs
+INSTRUCTOR_NOTES.md
+Claude outputs/
+
+# Python
+__pycache__/
+.venv/
+backend/index/*.json
+# Node
+frontend/node_modules/
+frontend/.next/
+frontend/.env.local
+backend/data/**/*.pdf
