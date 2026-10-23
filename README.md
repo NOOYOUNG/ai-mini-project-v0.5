@@ -6,20 +6,30 @@
 
 ### 사전 준비
 
+- `git` 설치 확인 : `git --version`
 - `uv` 설치 확인 : `uv --version`
 - `Node.js` 18.17 이상 설치 확인 : `node --version`
-- 프로젝트 루트에 `.env` 준비
-  - 필수 : `ANY_API_KEY`
+- 프로젝트 루트 : `ai-mini-project-v0.5/`
+- 루트에 `.env` 준비
+  - 필수 : ANY_API_KEY
   - 점검용 : `POOR_OUTPUT_TEST=0`
 
-### 1. 환경 구성 (최초 1회)
+### 1. 코드 받기 (최초 1회)
+
+```
+git clone https://github.com/elizabeth-kj-bae/ai-mini-project-v0.5.git
+cd ai-mini-project-v0.5
+```
+
+
+### 2. 환경 구성 (최초 1회)
 
 ```
 # 프로젝트 루트에서 실행
 uv sync --locked
 ```
 
-### 2. 자료 → 벡터 인덱스
+### 3. 자료 → 벡터 인덱스
 
 ```
 # 기본 자료를 backend/data/<item>/ 에 넣은 뒤 인덱스 생성
@@ -29,7 +39,7 @@ uv run python scripts/ingest.py --item hbf      # 또는 --all
 
 `backend/index/hbf.json`이 생성되면 정상입니다. 자료가 바뀌면 다시 실행해야 합니다.
 
-### 3. Backend 실행 (Terminal #1)
+### 4. Backend 실행 (Terminal #1)
 
 ```
 cd backend
@@ -40,7 +50,7 @@ uv run uvicorn app.main:app --reload --port 8000
 
 > Backend 실행 시 `LangChainPendingDeprecationWarning` 경고가 보여도 동작에는 영향이 없습니다.
 
-### 4. Frontend 실행 (Terminal #2)
+### 5. Frontend 실행 (Terminal #2)
 
 ```
 cd frontend
@@ -55,7 +65,7 @@ npm run dev
 ### 프로젝트 구조
 
 ```
-mini-project-v0.5/
+ai-mini-project-v0.5/
 ├── CHECKLIST.md             Day 1 진단 체크리스트
 ├── backend/                 FastAPI + LangGraph
 │   ├── app/
