@@ -18,3 +18,6 @@ frontend/node_modules/
 frontend/.next/
 frontend/.env.local
 backend/data/**/*.pdf
+
+# 제출용 diff 파일
+*.diff
