@@ -40,6 +40,7 @@ REPORTS: dict[str, str] = {}
 class ChatRequest(BaseModel):
     item_id: str
     query: str
+    test_mode: bool | None = None   # 화면에서 선택한 실행 모드 (없으면 .env 의 POOR_OUTPUT_TEST 사용)
 
 
 @app.get("/api/config")
@@ -67,12 +68,14 @@ async def chat(req: ChatRequest):
         raise HTTPException(status_code=404, detail=str(e))
 
     run_id = uuid.uuid4().hex[:12]
+    test_mode = settings.poor_output_test if req.test_mode is None else req.test_mode
     initial_state = {
         "run_id": run_id,
         "item_id": req.item_id,
         "item_name": item["name"],
         "competitors": item["competitors"],
         "query": req.query,
+        "test_mode": test_mode,
     }
 
     async def event_stream():
@@ -82,7 +85,7 @@ async def chat(req: ChatRequest):
 
         yield to_sse(RunStart(
             run_id=run_id, item_id=req.item_id, item_name=item["name"],
-            competitors=item["competitors"], query=req.query,
+            competitors=item["competitors"], query=req.query, test_mode=test_mode,
         ).model_dump())
 
         try:

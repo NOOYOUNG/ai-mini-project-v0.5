@@ -7,7 +7,7 @@ export const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:80
  * SSE 형식: "data: {json}\n\n" 이 반복됩니다.
  */
 export async function streamChat(
-  body: { item_id: string; query: string },
+  body: { item_id: string; query: string; test_mode: boolean },
   onEvent: (ev: AgentEvent) => void,
   signal?: AbortSignal,
 ): Promise<void> {

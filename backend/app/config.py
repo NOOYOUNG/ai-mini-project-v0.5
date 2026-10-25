@@ -25,7 +25,7 @@ class Settings:
     tavily_api_key: str = os.getenv("TAVILY_API_KEY", "")
     recursion_limit: int = int(os.getenv("RECURSION_LIMIT", "25"))
     frontend_origin: str = os.getenv("FRONTEND_ORIGIN", "http://localhost:3000")
-    poor_output_test: bool = os.getenv("POOR_OUTPUT_TEST", "0") == "1"
+    poor_output_test: bool = os.getenv("POOR_OUTPUT_TEST", "0") == "1"   # 화면에서 모드를 보내지 않을 때의 기본값
 
     data_dir: Path = BASE_DIR / "data"
     index_dir: Path = BASE_DIR / "index"

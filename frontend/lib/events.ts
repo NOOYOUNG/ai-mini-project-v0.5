@@ -2,7 +2,7 @@
  * 이벤트 스키마 (Backend app/events.py 와 같은 형식)
  * 한쪽을 바꾸면 다른 쪽도 함께 바꿔야 합니다.
  */
-export type RunStart = { type: "run_start"; ts: number; run_id: string; item_id: string; item_name: string; competitors: string[]; query: string };
+export type RunStart = { type: "run_start"; ts: number; run_id: string; item_id: string; item_name: string; competitors: string[]; query: string; test_mode: boolean };
 export type NodeStart = { type: "node_start"; ts: number; node: string };
 export type NodeEnd = { type: "node_end"; ts: number; node: string; duration_ms: number };
 export type BranchStart = { type: "branch_start"; ts: number; node: string; branch: string };

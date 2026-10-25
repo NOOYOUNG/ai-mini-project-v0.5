@@ -39,6 +39,7 @@ export default function Home() {
   const [query, setQuery] = useState("");
   const [events, setEvents] = useState<AgentEvent[]>([]);
   const [running, setRunning] = useState(false);
+  const [testMode, setTestMode] = useState(false);   // 점검용 테스트 모드 (부실한 결과 생성)
   const [loadError, setLoadError] = useState("");
   const abortRef = useRef<AbortController | null>(null);
 
@@ -62,7 +63,7 @@ export default function Home() {
     const ctrl = new AbortController();
     abortRef.current = ctrl;
     try {
-      await streamChat({ item_id: itemId, query }, (ev) => setEvents((prev) => [...prev, ev]), ctrl.signal);
+      await streamChat({ item_id: itemId, query, test_mode: testMode }, (ev) => setEvents((prev) => [...prev, ev]), ctrl.signal);
     } catch (err) {
       if (!ctrl.signal.aborted) {
         setEvents((prev) => [...prev, { type: "error", ts: Date.now(), message: String(err) }]);
@@ -80,6 +81,7 @@ export default function Home() {
     const usage = pick("llm_usage");
     return {
       t0,
+      runStart: pick("run_start").at(-1),
       nodes: pairRows(events, "node_start", "node_end", (e) => e.node, t0),
       branches: pairRows(events, "branch_start", "branch_end", (e) => e.branch, t0),
       routes: pick("route"),
@@ -125,6 +127,13 @@ export default function Home() {
             </div>
           )}
 
+          <div className="mode">
+            <span className="muted">실행 모드</span>
+            <button className={testMode ? "ghost" : ""} onClick={() => setTestMode(false)} disabled={running}>정상 모드</button>
+            <button className={testMode ? "warn" : "ghost"} onClick={() => setTestMode(true)} disabled={running}>테스트 모드</button>
+          </div>
+          {testMode && <p className="muted">테스트 모드 : 보고서 작성 단계가 근거 없는 "부실한 결과"를 만듭니다. 평가 단계 점검용입니다.</p>}
+
           <textarea rows={3} value={query} onChange={(e) => setQuery(e.target.value)} placeholder="질문을 입력하세요" disabled={running} />
           <div className="actions">
             <button onClick={run} disabled={running || !query.trim()}>{running ? "실행 중..." : "실행"}</button>
@@ -148,6 +157,12 @@ export default function Home() {
 
       {/* ───────── 오른쪽: 실행 관찰 패널 ───────── */}
       <section className="column">
+        {view.runStart && (
+          <div className={`card mode-banner ${view.runStart.test_mode ? "test" : "normal"}`}>
+            실행 모드 : <b>{view.runStart.test_mode ? "테스트 모드 (부실한 결과 생성)" : "정상 모드"}</b>
+            <span className="muted"> · run_id {view.runStart.run_id}</span>
+          </div>
+        )}
         {view.errors.map((e, i) => <p key={i} className="error">오류: {e.message}</p>)}
 
         {view.done && (

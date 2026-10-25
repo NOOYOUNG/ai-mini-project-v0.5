@@ -20,7 +20,6 @@ from app.agent.prompts import (
 )
 from app.agent.state import AgentState
 from app.agent.tracing import traced
-from app.config import settings
 from app.events import BranchEnd, BranchStart, Evaluation, Progress, Token, emit
 from app.llm import ainvoke_tracked, astream_tracked
 from app.retrieval import index_exists, search_docs, search_web, web_search_enabled
@@ -114,7 +113,7 @@ POOR_OUTPUT_SAMPLE = (
 @traced("writer")
 async def writer(state: AgentState) -> dict:
     # 점검용 테스트 모드: 근거 없이 일반론만 담긴 "부실한 결과"를 만듭니다.
-    if settings.poor_output_test:
+    if state.get("test_mode"):
         emit(Progress(node="writer", message="[테스트 모드] 부실한 중간 결과를 생성합니다."))
         emit(Token(node="writer", text=POOR_OUTPUT_SAMPLE))
         return {"draft": POOR_OUTPUT_SAMPLE}

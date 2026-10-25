@@ -45,6 +45,7 @@ class RunStart(BaseEvent):
     item_name: str
     competitors: list[str]
     query: str
+    test_mode: bool = False      # 점검용 테스트 모드 여부
 
 
 class NodeStart(BaseEvent):
