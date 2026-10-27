@@ -21,3 +21,5 @@ backend/data/**/*.pdf
 
 # 제출용 diff 파일
 *.diff
+results.md
+.playwright-cli/
