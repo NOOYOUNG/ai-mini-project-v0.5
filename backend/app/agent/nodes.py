@@ -8,6 +8,7 @@
 """
 from __future__ import annotations
 
+import asyncio
 import time
 
 from langchain_core.messages import HumanMessage, SystemMessage
@@ -52,8 +53,11 @@ async def researcher(state: AgentState) -> dict:
 #  - 기업마다 근거를 추가로 찾고, LLM으로 현황과 TRL을 추정합니다.
 #  - 기업 하나의 분석을 "갈래(branch)"라고 부르며, 갈래마다 시작/종료 이벤트를 남깁니다.
 # ──────────────────────────────────────────────────────────────
-async def analyze_competitor(state: AgentState, competitor: str) -> dict:
-    """기업 하나를 분석해 {"competitor": 기업명, "analysis": 분석 내용, "sources": [...]} 를 돌려줍니다."""
+MAX_COMPETITOR_BRANCHES = 3
+
+
+async def analyze_competitor(state: AgentState, branch_id: str, competitor: str) -> dict:
+    """기업 하나를 분석해 branch_id와 함께 결과를 돌려줍니다."""
     item_name = state["item_name"]
     search_query = f"{competitor} {item_name}"
 
@@ -70,6 +74,7 @@ async def analyze_competitor(state: AgentState, competitor: str) -> dict:
     ]
     analysis = await ainvoke_tracked(messages, node="competitor_analyst")
     return {
+        "branch_id": branch_id,
         "competitor": competitor,
         "analysis": analysis,
         "sources": [e["source"] for e in evidence],
@@ -81,16 +86,30 @@ async def competitor_analyst(state: AgentState) -> dict:
     competitors = state.get("competitors", [])
     emit(Progress(node="competitor_analyst", message=f"분석 대상 {len(competitors)}개 기업: {', '.join(competitors)}"))
 
-    findings = []
-    for competitor in competitors:
-        emit(BranchStart(node="competitor_analyst", branch=competitor))
+    branches = [
+        {"branch_id": f"competitor-{index + 1}", "competitor": competitor}
+        for index, competitor in enumerate(competitors)
+    ]
+    branch_limit = asyncio.Semaphore(MAX_COMPETITOR_BRANCHES)
+
+    async def run_branch(branch: dict) -> dict:
+        branch_id = branch["branch_id"]
+        competitor = branch["competitor"]
+        branch_name = f"{branch_id}:{competitor}"
+
+        emit(BranchStart(node="competitor_analyst", branch=branch_name))
         started = time.perf_counter()
 
-        finding = await analyze_competitor(state, competitor)
-        findings.append(finding)
+        try:
+            async with branch_limit:
+                return await analyze_competitor(state, branch_id, competitor)
+        finally:
+            elapsed = int((time.perf_counter() - started) * 1000)
+            emit(BranchEnd(node="competitor_analyst", branch=branch_name, duration_ms=elapsed))
 
-        elapsed = int((time.perf_counter() - started) * 1000)
-        emit(BranchEnd(node="competitor_analyst", branch=competitor, duration_ms=elapsed))
+    branch_results = await asyncio.gather(*(run_branch(branch) for branch in branches))
+    findings_by_id = {finding["branch_id"]: finding for finding in branch_results}
+    findings = [findings_by_id[branch["branch_id"]] for branch in branches]
 
     return {"competitor_findings": findings}
 
