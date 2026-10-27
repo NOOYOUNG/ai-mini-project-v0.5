@@ -24,6 +24,7 @@ from pydantic import BaseModel
 from app.agent.graph import graph
 from app.config import get_item, load_items, settings
 from app.events import Done, ErrorEvent, Report, RunStart
+from app.llm import reset_llm_cost_usage
 
 app = FastAPI(title="AI Service Mini Project")
 app.add_middleware(
@@ -80,6 +81,7 @@ async def chat(req: ChatRequest):
 
     async def event_stream():
         started = time.perf_counter()
+        reset_llm_cost_usage()
         totals = {"llm_calls": 0, "input_tokens": 0, "output_tokens": 0, "total_cost_usd": 0.0}
         final_draft = ""
 

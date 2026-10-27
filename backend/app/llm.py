@@ -5,6 +5,7 @@ LLM / 임베딩 생성과 사용량 기록
 """
 from __future__ import annotations
 
+from contextvars import ContextVar
 from functools import lru_cache
 
 from langchain_core.messages import BaseMessage
@@ -12,6 +13,8 @@ from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 
 from app.config import PRICING_PER_1M, settings
 from app.events import LlmUsage, Token, emit
+
+_run_cost_usd: ContextVar[float] = ContextVar("run_cost_usd", default=0.0)
 
 
 @lru_cache
@@ -35,17 +38,32 @@ def estimate_cost(model: str, input_tokens: int, output_tokens: int) -> float:
     return (input_tokens * price_in + output_tokens * price_out) / 1_000_000
 
 
+def reset_llm_cost_usage() -> None:
+    """실행 1회 기준 LLM 누적 비용을 초기화합니다."""
+    _run_cost_usd.set(0.0)
+
+
 def _emit_usage(node: str, message) -> None:
     usage = getattr(message, "usage_metadata", None) or {}
     input_tokens = usage.get("input_tokens", 0)
     output_tokens = usage.get("output_tokens", 0)
+    cost_usd = estimate_cost(settings.llm_model, input_tokens, output_tokens)
+    total_cost_usd = _run_cost_usd.get() + cost_usd
+    _run_cost_usd.set(total_cost_usd)
+
     emit(LlmUsage(
         node=node,
         model=settings.llm_model,
         input_tokens=input_tokens,
         output_tokens=output_tokens,
-        cost_usd=estimate_cost(settings.llm_model, input_tokens, output_tokens),
+        cost_usd=cost_usd,
     ))
+
+    if total_cost_usd >= settings.llm_cost_limit_usd:
+        raise RuntimeError(
+            "LLM 비용 상한 도달: "
+            f"${total_cost_usd:.6f} / ${settings.llm_cost_limit_usd:.6f}"
+        )
 
 
 async def ainvoke_tracked(messages: list[BaseMessage], node: str) -> str:
