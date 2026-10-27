@@ -15,11 +15,12 @@ from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent   # backend/
 ROOT_DIR = BASE_DIR.parent                          # 프로젝트 루트 (.env 위치)
-load_dotenv(ROOT_DIR / ".env")
+load_dotenv(ROOT_DIR / ".env", override=True)
 
 
 @dataclass(frozen=True)
 class Settings:
+    openai_api_key: str = os.getenv("OPENAI_API_KEY", "")
     llm_model: str = os.getenv("LLM_MODEL", "gpt-4o-mini")
     embedding_model: str = os.getenv("EMBEDDING_MODEL", "text-embedding-3-small")
     tavily_api_key: str = os.getenv("TAVILY_API_KEY", "")

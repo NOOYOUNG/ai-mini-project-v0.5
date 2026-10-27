@@ -17,12 +17,17 @@ from app.events import LlmUsage, Token, emit
 @lru_cache
 def get_llm() -> ChatOpenAI:
     # stream_usage=True : 스트리밍 응답에서도 토큰 사용량을 받기 위한 옵션
-    return ChatOpenAI(model=settings.llm_model, temperature=0, stream_usage=True)
+    return ChatOpenAI(
+        model=settings.llm_model,
+        temperature=0,
+        stream_usage=True,
+        api_key=settings.openai_api_key,
+    )
 
 
 @lru_cache
 def get_embeddings() -> OpenAIEmbeddings:
-    return OpenAIEmbeddings(model=settings.embedding_model)
+    return OpenAIEmbeddings(model=settings.embedding_model, api_key=settings.openai_api_key)
 
 
 def estimate_cost(model: str, input_tokens: int, output_tokens: int) -> float:
