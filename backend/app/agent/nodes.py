@@ -81,18 +81,18 @@ async def competitor_analyst(state: AgentState) -> dict:
     competitors = state.get("competitors", [])
     emit(Progress(node="competitor_analyst", message=f"분석 대상 {len(competitors)}개 기업: {', '.join(competitors)}"))
 
-    update: dict = {}
+    findings = []
     for competitor in competitors:
         emit(BranchStart(node="competitor_analyst", branch=competitor))
         started = time.perf_counter()
 
         finding = await analyze_competitor(state, competitor)
-        update["competitor_findings"] = [finding]      # 기업별 분석 결과 저장
+        findings.append(finding)
 
         elapsed = int((time.perf_counter() - started) * 1000)
         emit(BranchEnd(node="competitor_analyst", branch=competitor, duration_ms=elapsed))
 
-    return update
+    return {"competitor_findings": findings}
 
 
 # ──────────────────────────────────────────────────────────────

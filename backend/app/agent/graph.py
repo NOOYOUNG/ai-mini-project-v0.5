@@ -33,7 +33,12 @@ def build_graph():
     g.add_conditional_edges(
         "supervisor",
         route_from_supervisor,
-        {"researcher": "researcher", "competitor_analyst": "competitor_analyst", "writer": "writer"},
+        {
+            "researcher": "researcher",
+            "competitor_analyst": "competitor_analyst",
+            "writer": "writer",
+            "FINISH": END,
+        },
     )
     g.add_edge("researcher", "supervisor")
     g.add_edge("competitor_analyst", "supervisor")
